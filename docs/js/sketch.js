@@ -6,51 +6,6 @@ let board = new Board(SIZE);
 board.generate(GENERATIONS);
 board.generate(GENERATIONS);
 
-let touchstartX = 0;
-let touchendX = 0;
-let touchstartY = 0;
-let touchendY = 0;
-
-function checkSwipe() {
-  const threshold = 16;
-  const diffX = touchendX - touchstartX;
-  const diffY = touchendY - touchstartY;
-  const vertical = Math.abs(diffX) < Math.abs(diffY);
-  const ignore = Math.max(Math.abs(diffX), Math.abs(diffY)) < threshold;
-
-  if (ignore) return;
-
-  let move = '';
-
-  if (vertical) {
-    if (diffY > 0) {
-      move = 'down';
-    } else {
-      move = 'up';
-    }
-  } else {
-    if (diffX > 0) {
-      move = 'right';
-    } else {
-      move = 'left';
-    }
-  }
-
-  if (move !== '') makeMove(move);
-}
-
-document.addEventListener('touchstart', e => {
-  touchstartX = e.changedTouches[0].screenX;
-  touchstartY = e.changedTouches[0].screenY;
-  console.log('test');
-});
-
-document.addEventListener('touchend', e => {
-  touchendX = e.changedTouches[0].screenX;
-  touchendY = e.changedTouches[0].screenY;
-  checkSwipe();
-});
-
 function getCanvasWidth() {
   return 400;
 }
@@ -64,6 +19,34 @@ function setup() {
   textAlign(CENTER, CENTER);
   textSize(getCanvasWidth() / board.getSize() / 4);
   textStyle(BOLD);
+
+  var hammer = new Hammer(document.body, {
+    preventDefault: true,
+  });
+
+  hammer.get('swipe').set({
+    direction: Hammer.DIRECTION_ALL,
+  });
+
+  hammer.on('swipe', swiped);
+}
+
+function swiped(event) {
+  let move = '';
+
+  if (event.direction == 2) {
+    move = 'left';
+  } else if (event.direction == 4) {
+    move = 'right';
+  } else if (event.direction == 8) {
+    move = 'up';
+  } else if (event.direction == 16) {
+    move = 'down';
+  }
+
+  if (move !== '') {
+    makeMove(move);
+  }
 }
 
 function draw() {
