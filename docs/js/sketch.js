@@ -6,9 +6,55 @@ let board = new Board(SIZE);
 board.generate(GENERATIONS);
 board.generate(GENERATIONS);
 
+let touchstartX = 0;
+let touchendX = 0;
+let touchstartY = 0;
+let touchendY = 0;
+
+function checkSwipe() {
+  const threshold = 16;
+  const diffX = touchendX - touchstartX;
+  const diffY = touchendY - touchstartY;
+  const vertical = Math.abs(diffX) < Math.abs(diffY);
+  const ignore = Math.max(Math.abs(diffX), Math.abs(diffY)) < threshold;
+
+  if (ignore) return;
+
+  let move = '';
+
+  if (vertical) {
+    if (diffY > 0) {
+      move = 'down';
+    } else {
+      move = 'up';
+    }
+  } else {
+    if (diffX > 0) {
+      move = 'right';
+    } else {
+      move = 'left';
+    }
+  }
+
+  if (move !== '') makeMove(move);
+}
+
+document.addEventListener('touchstart', e => {
+  touchstartX = e.changedTouches[0].screenX;
+  touchstartY = e.changedTouches[0].screenY;
+  console.log('test');
+});
+
+document.addEventListener('touchend', e => {
+  touchendX = e.changedTouches[0].screenX;
+  touchendY = e.changedTouches[0].screenY;
+  checkSwipe();
+});
+
 function getCanvasWidth() {
   return 400;
 }
+
 function getCanvasHeight() {
   return getCanvasWidth();
 }
@@ -33,9 +79,11 @@ function draw() {
       if (values[i][j] === 0) continue;
 
       fill(32);
-      rect(i * size + margin + PADDING, j * size + margin + PADDING, size - 2 * margin, size - 2 * margin, size / 16);
+      rect(i * size + margin + PADDING, j * size + margin + PADDING,
+          size - 2 * margin, size - 2 * margin, size / 16);
       fill(255);
-      text(values[i][j], i * size + size / 2 + PADDING, j * size + size / 2 + PADDING);
+      text(values[i][j], i * size + size / 2 + PADDING,
+          j * size + size / 2 + PADDING);
     }
   }
 }
@@ -48,20 +96,31 @@ function keyPressed() {
     [LEFT_ARROW]: 'left',
   };
 
-  switch (keyCode) {
-    case UP_ARROW:
+  const move = keyCodeMoveMap[keyCode] ?? null;
+
+  if (move !== null) {
+    makeMove(move);
+  }
+}
+
+/**
+ * @param {string} move
+ */
+function makeMove(move) {
+  switch (move) {
+    case 'up':
       board.pushUp();
       board.generate(GENERATIONS);
       break;
-    case DOWN_ARROW:
+    case 'down':
       board.pushDown();
       board.generate(GENERATIONS);
       break;
-    case LEFT_ARROW:
+    case 'left':
       board.pushLeft();
       board.generate(GENERATIONS);
       break;
-    case RIGHT_ARROW:
+    case 'right':
       board.pushRight();
       board.generate(GENERATIONS);
       break;
